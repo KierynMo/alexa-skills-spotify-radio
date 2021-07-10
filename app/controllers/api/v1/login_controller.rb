@@ -9,7 +9,9 @@ class Api::V1::LoginController < ApplicationController
       scope: "user-read-private
       user-read-recently-played
       user-read-currently-playing
-      user-modify-playback-state",
+      user-modify-playback-state
+      playlist-modify-public
+      playlist-modify-private",
      show_dialog: true
     }
     redirect_to "#{url}?#{query_params.to_query}"
