@@ -33,7 +33,7 @@ class Api::V1::UsersController < ApplicationController
     #1. get all users playlists
     user_playlists_response = RestClient.get("https://api.spotify.com/v1/me/playlists?limit=50", @header)
     user_playlists_params = JSON.parse(user_playlists_response.body)
-    user_playlists = user_playlists_params["items"].map{ |playlist| playlist["name"] }
+    user_playlists = user_playlists_params["items"].map{ |playlist| {playlist['name'] => playlist['id']} }
     raise
     #2. check if playlist is present
     #3.    if present - get all the tracks
