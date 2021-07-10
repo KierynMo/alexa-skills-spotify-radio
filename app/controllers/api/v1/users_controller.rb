@@ -14,14 +14,32 @@ class Api::V1::UsersController < ApplicationController
           }
       auth_response = RestClient.post('https://accounts.spotify.com/api/token', body)
       auth_params = JSON.parse(auth_response.body)
-      header = {
+      @header = {
         Authorization: "Bearer #{auth_params["access_token"]}"
       }
-      user_response = RestClient.get('https://api.spotify.com/v1/me/player/currently-playing?market=GB', header)
+
+      user_response = RestClient.get('https://api.spotify.com/v1/me/player/currently-playing?market=GB', @header)
       user_params = JSON.parse(user_response.body)
       current_track_id = user_params["item"]["id"]
-      recommendations_response = RestClient.get("https://api.spotify.com/v1/recommendations?limit=10&market=GB&seed_tracks=#{current_track_id}", header)
-      raise
+
+      recommendations_response = RestClient.get("https://api.spotify.com/v1/recommendations?limit=10&market=GB&seed_tracks=#{current_track_id}", @header)
+      recommended_tracks = JSON.parse(recommendations_response.body)
+      @recommended_track_ids = recommended_tracks["tracks"].map{ |track| track['id'] }
+      playlist
     end
+  end
+
+  def playlist
+    #1. get all users playlists
+    user_playlists_response = RestClient.get("https://api.spotify.com/v1/me/playlists?limit=50", @header)
+    user_playlists_params = JSON.parse(user_playlists_response.body)
+    user_playlists = user_playlists_params["items"].map{ |playlist| playlist["name"] }
+    raise
+    #2. check if playlist is present
+    #3.    if present - get all the tracks
+    #4.    delete all the tracks in the playlist
+    #5. if playlist is not present create playlist
+    #6. populate playlist with recommended songs
+
   end
 end
