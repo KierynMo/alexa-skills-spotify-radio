@@ -11,8 +11,10 @@ class Api::V1::LoginController < ApplicationController
       user-read-currently-playing
       user-modify-playback-state
       playlist-modify-public
-      playlist-modify-private",
-     show_dialog: true
+      playlist-modify-private
+      playlist-read-private
+      playlist-read-collaborative",
+      show_dialog: true
     }
     redirect_to "#{url}?#{query_params.to_query}"
   end

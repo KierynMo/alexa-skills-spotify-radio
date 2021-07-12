@@ -25,21 +25,29 @@ class Api::V1::UsersController < ApplicationController
       recommendations_response = RestClient.get("https://api.spotify.com/v1/recommendations?limit=10&market=GB&seed_tracks=#{@current_track.values[0]}", @header)
       recommended_tracks = JSON.parse(recommendations_response.body)
       @recommended_track_ids = recommended_tracks["tracks"].map{ |track| track['id'] }
+      @recommended_uris = recommended_tracks["tracks"].map { |track| track["uri"] }
       playlist
     end
   end
 
   def playlist
     #1. get all users playlists
-    user_playlists_response = RestClient.get("https://api.spotify.com/v1/me/playlists?limit=50", @header)
+    user_playlists_response = RestClient.get("https://api.spotify.com/v1/me/playlists", @header)
     user_playlists_params = JSON.parse(user_playlists_response.body)
     user_playlists = user_playlists_params["items"].map{ |playlist| {playlist['name'] => playlist['id']} }
 
     @current_user_id = user_playlists_params["items"].first['owner']['id']
 
+    # test_playlist_response = RestClient.get("https://api.spotify.com/v1/users/#{@current_user_id}/playlists", @header)
+    # test_playlist_params = JSON.parse(test_playlist_response.body)
     #2. check if playlist is present
     if user_playlists.map{ |playlist| playlist.keys.first }.include? "Recommended by Alexa"
-      raise
+      alexa_playlist_id = user_playlists.find { |playlist| playlist.keys.first == "Recommended by Alexa" }
+      update_URL = "https://api.spotify.com/v1/playlists/#{alexa_playlist_id["Recommended by Alexa"]}/tracks?uris="
+      @recommended_uris.each { |uri| update_URL << uri << "," }
+      update_URL = update_URL[0..-1]
+      update_playlist_response = RestClient.put(update_URL, @header)
+
     #3.    if present - get all the tracks
     #4.    delete all the tracks in the playlist
       # playlist_id =
@@ -53,7 +61,7 @@ class Api::V1::UsersController < ApplicationController
     }
 
     #create playlist api gives a 401 response. Think it has to do with the syntax of @header, body
-    create_playlist_response = RestClient.post("https://api.spotify.com/v1/users/#{@current_user_id}/playlists", @header, body)
+    create_playlist_response = RestClient.post("https://api.spotify.com/v1/users/#{@current_user_id}/playlists", body.to_json, @header)
     create_playlist_params = JSON.parse(create_playlist_response.body)
     raise
     end
