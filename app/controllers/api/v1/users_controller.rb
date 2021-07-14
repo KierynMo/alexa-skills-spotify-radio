@@ -41,31 +41,28 @@ class Api::V1::UsersController < ApplicationController
     # test_playlist_response = RestClient.get("https://api.spotify.com/v1/users/#{@current_user_id}/playlists", @header)
     # test_playlist_params = JSON.parse(test_playlist_response.body)
     #2. check if playlist is present
-    if user_playlists.map{ |playlist| playlist.keys.first }.include? "Recommended by Alexa"
-      alexa_playlist_id = user_playlists.find { |playlist| playlist.keys.first == "Recommended by Alexa" }
-      update_URL = "https://api.spotify.com/v1/playlists/#{alexa_playlist_id["Recommended by Alexa"]}/tracks?uris="
-      @recommended_uris.each { |uri| update_URL << uri << "," }
-      update_URL = update_URL[0..-2]
-      update_playlist_response = RestClient.put(update_URL, @header)
 
-    #3.    if present - get all the tracks
-    #4.    delete all the tracks in the playlist
-      # playlist_id =
-      # playlist_items_response = RestClient.get("https://api.spotify.com/v1/playlists/21THa8j9TaSGuXYNBU5tsC/tracks?market=GB")
-    else
-    #5. if playlist is not present create playlist
-    body = {
-      name: "Recommended by Alexa",
-      description: "#{@current_track.keys[0]} Radio",
-      public: false
-    }
+    playlist_names = user_playlists.map{ |playlist| playlist.keys.first }
+    unless playlist_names.include? "Recommended by Alexa"
+      body = {
+        name: "Recommended by Alexa",
+        description: "#{@current_track.keys[0]} Radio",
+        public: false
+      }
 
-    #create playlist api gives a 401 response. Think it has to do with the syntax of @header, body
-    create_playlist_response = RestClient.post("https://api.spotify.com/v1/users/#{@current_user_id}/playlists", body.to_json, @header)
-    create_playlist_params = JSON.parse(create_playlist_response.body)
-    raise
+      create_playlist_response = RestClient.post("https://api.spotify.com/v1/users/#{@current_user_id}/playlists", body.to_json, @header)
+      create_playlist_params = JSON.parse(create_playlist_response.body)
+      alexa_playlist_id = { "Recommended by Alexa" => create_playlist_params["id"] }
     end
-    #6. populate playlist with recommended songs
+
+    alexa_playlist_id = user_playlists.find { |playlist| playlist.keys.first == "Recommended by Alexa" } unless alexa_playlist_id
+
+    update_URL = "https://api.spotify.com/v1/playlists/#{alexa_playlist_id["Recommended by Alexa"]}/tracks?uris="
+    uris = ""
+    @recommended_uris.each { |uri| uris << uri << "," }
+    uris = uris[0..-2]
+    update_URL << ERB::Util.url_encode(uris)
+    update_playlist_response = RestClient.put(update_URL, "", @header)
 
   end
 end
