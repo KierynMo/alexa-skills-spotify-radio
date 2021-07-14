@@ -45,7 +45,7 @@ class Api::V1::UsersController < ApplicationController
       alexa_playlist_id = user_playlists.find { |playlist| playlist.keys.first == "Recommended by Alexa" }
       update_URL = "https://api.spotify.com/v1/playlists/#{alexa_playlist_id["Recommended by Alexa"]}/tracks?uris="
       @recommended_uris.each { |uri| update_URL << uri << "," }
-      update_URL = update_URL[0..-1]
+      update_URL = update_URL[0..-2]
       update_playlist_response = RestClient.put(update_URL, @header)
 
     #3.    if present - get all the tracks
