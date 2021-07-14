@@ -46,7 +46,7 @@ class Api::V1::UsersController < ApplicationController
     unless playlist_names.include? "Recommended by Alexa"
       body = {
         name: "Recommended by Alexa",
-        description: "#{@current_track.keys[0]} Radio",
+        description: "Alexa Radio",
         public: false
       }
 
