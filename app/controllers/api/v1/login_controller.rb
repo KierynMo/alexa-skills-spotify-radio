@@ -5,7 +5,7 @@ class Api::V1::LoginController < ApplicationController
     query_params = {
       client_id: ENV['CLIENT_ID'],
       response_type: 'code',
-      redirect_uri: 'http://localhost:3000/api/v1/user',
+      redirect_uri: 'https://alexa-recommended-songs.herokuapp.com/api/v1/user',
       scope: "user-read-private
       user-read-recently-played
       user-read-currently-playing
