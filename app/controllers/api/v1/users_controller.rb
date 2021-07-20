@@ -5,17 +5,19 @@ class Api::V1::UsersController < ApplicationController
       puts "LOGIN ERROR", params
       redirect_to "http://localhost:3000/login/failure"
     else
-      body = {
-            grant_type: "authorization_code",
-            code: params[:code],
-            redirect_uri: ENV['REDIRECT_URI'],
-            client_id: ENV['CLIENT_ID'],
-            client_secret: ENV["CLIENT_SECRET"]
-          }
-      auth_response = RestClient.post('https://accounts.spotify.com/api/token', body)
-      auth_params = JSON.parse(auth_response.body)
+      # body = {
+      #       grant_type: "authorization_code",
+      #       code: params[:code],
+      #       redirect_uri: ENV['REDIRECT_URI'],
+      #       client_id: ENV['CLIENT_ID'],
+      #       client_secret: ENV["CLIENT_SECRET"]
+      #     }
+      # auth_response = RestClient.post('https://accounts.spotify.com/api/token', body)
+      # auth_params = JSON.parse(auth_response.body)
+      alexa_params = JSON.parse(request.raw_post)
+      access_token = alexa_params['session']["user"]['accessToken']
       @header = {
-        Authorization: "Bearer #{auth_params["access_token"]}"
+        Authorization: "Bearer #{access_token}"
       }
 
       current_song_response = RestClient.get('https://api.spotify.com/v1/me/player/currently-playing?market=GB', @header)
