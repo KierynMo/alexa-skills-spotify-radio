@@ -28,11 +28,12 @@ class Api::V1::UsersController < ApplicationController
       recommended_tracks = JSON.parse(recommendations_response.body)
       @recommended_track_ids = recommended_tracks["tracks"].map{ |track| track['id'] }
       @recommended_uris = recommended_tracks["tracks"].map { |track| track["uri"] }
-      playlist
+      create_playlist
+      render json: response_object
     end
   end
 
-  def playlist
+  def create_playlist
     #1. get all users playlists
     user_playlists_response = RestClient.get("https://api.spotify.com/v1/me/playlists", @header)
     user_playlists_params = JSON.parse(user_playlists_response.body)
@@ -66,5 +67,35 @@ class Api::V1::UsersController < ApplicationController
     update_URL << ERB::Util.url_encode(uris)
     update_playlist_response = RestClient.put(update_URL, "", @header)
 
+  end
+
+  def alexa_response
+    response_object.to_json
+  end
+
+#   def response_header
+#     {
+#     Content-Type : application/json;charset=UTF-8
+
+# Host : your.application.endpoint
+# Content-Length :
+# Accept : application/json
+# Accept-Charset : utf-8
+# Signature:
+# SignatureCertChainUrl: https://s3.amazonaws.com/echo.api/echo-api-cert.pem
+# }
+#   end
+
+  def response_object
+    {
+      version: "1.0",
+      response: {
+        outputSpeech: {
+          type: "PlainText",
+          text: "Great Success!",
+          playBehavior: "REPLACE_ENQUEUED"
+        }
+      }
+    }
   end
 end
