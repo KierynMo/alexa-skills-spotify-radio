@@ -28,8 +28,11 @@ class Api::V1::UsersController < ApplicationController
       recommended_tracks = JSON.parse(recommendations_response.body)
       @recommended_track_ids = recommended_tracks["tracks"].map{ |track| track['id'] }
       @recommended_uris = recommended_tracks["tracks"].map { |track| track["uri"] }
-      create_playlist
+      playlist_id = create_playlist
       render json: response_object
+      #To stop the play_song starting a song from the previous playlist. It needs a delay
+      sleep(5)
+      play_song(playlist_id)
     end
   end
 
@@ -66,11 +69,8 @@ class Api::V1::UsersController < ApplicationController
     uris = uris[0..-2]
     update_URL << ERB::Util.url_encode(uris)
     update_playlist_response = RestClient.put(update_URL, "", @header)
-
-  end
-
-  def alexa_response
-    response_object.to_json
+    #return playlist_id to be used as a param in the play_song function
+    alexa_playlist_id
   end
 
 #   def response_header
@@ -86,13 +86,21 @@ class Api::V1::UsersController < ApplicationController
 # }
 #   end
 
+  def play_song(playlist_id)
+    body = {
+      context_uri: "spotify:playlist:#{playlist_id.values.first}"
+    }
+
+    play_song_response = RestClient.put('https://api.spotify.com/v1/me/player/play', body.to_json, @header)
+  end
+
   def response_object
     {
       version: "1.0",
       response: {
         outputSpeech: {
           type: "PlainText",
-          text: "Great Success!",
+          text: "I have created a playlist of similar tracks. Hope you enjoy!",
           playBehavior: "REPLACE_ENQUEUED"
         }
       }

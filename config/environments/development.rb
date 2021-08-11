@@ -52,7 +52,7 @@ Rails.application.configure do
 
 
   #allows ngrok to redirect our local environment
-  config.hosts << "8b878571badb.ngrok.io"
+  config.hosts << "fc7ab8daf400.ngrok.io"
   # config.web_console.permissions = '54.240.197.0/200'
   config.web_console.whiny_requests = false
 end
